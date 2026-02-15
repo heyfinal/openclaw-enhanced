@@ -1,0 +1,253 @@
+{
+  "meta": {
+    "lastTouchedVersion": "2026.2.14-UPGRADED",
+    "lastTouchedAt": "2026-02-15T18:45:00.000Z",
+    "upgradeApplied": true,
+    "upgradeDate": "2026-02-15",
+    "upgrades": [
+      "Expanded Memory System",
+      "Service Integrations",
+      "Task Automation",
+      "Enhanced UI",
+      "Increased Permissions"
+    ]
+  },
+  "wizard": {
+    "lastRunAt": "2026-02-15T16:14:06.014Z",
+    "lastRunVersion": "2026.2.13",
+    "lastRunCommand": "doctor",
+    "lastRunMode": "local"
+  },
+  "models": {
+    "providers": {
+      "openai": {
+        "baseUrl": "https://api.openai.com/v1",
+        "apiKey": "YOUR_OPENAI_API_KEY_HERE",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "gpt-4o",
+            "name": "GPT-4o",
+            "reasoning": false,
+            "input": ["text", "image"],
+            "cost": {
+              "input": 2.5,
+              "output": 10,
+              "cacheRead": 1.25,
+              "cacheWrite": 3.75
+            },
+            "contextWindow": 128000,
+            "maxTokens": 16384
+          },
+          {
+            "id": "gpt-4o-mini",
+            "name": "GPT-4o Mini",
+            "reasoning": false,
+            "input": ["text", "image"],
+            "cost": {
+              "input": 0.15,
+              "output": 0.6,
+              "cacheRead": 0.075,
+              "cacheWrite": 0.225
+            },
+            "contextWindow": 128000,
+            "maxTokens": 16384
+          }
+        ]
+      },
+      "deepseek": {
+        "baseUrl": "https://api.deepseek.com",
+        "apiKey": "YOUR_DEEPSEEK_API_KEY_HERE",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "deepseek-chat",
+            "name": "DeepSeek Chat",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": {
+              "input": 0.14,
+              "output": 0.28,
+              "cacheRead": 0.014,
+              "cacheWrite": 0.14
+            },
+            "contextWindow": 128000,
+            "maxTokens": 8192
+          },
+          {
+            "id": "deepseek-reasoner",
+            "name": "DeepSeek Reasoner",
+            "reasoning": true,
+            "input": ["text"],
+            "cost": {
+              "input": 0.55,
+              "output": 2.19,
+              "cacheRead": 0.14,
+              "cacheWrite": 0.55
+            },
+            "contextWindow": 128000,
+            "maxTokens": 8192
+          }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "deepseek/deepseek-chat"
+      },
+      "compaction": {
+        "mode": "safeguard"
+      },
+      "maxConcurrent": 8,
+      "subagents": {
+        "maxConcurrent": 16,
+        "model": {
+          "primary": "deepseek/deepseek-chat"
+        }
+      },
+      "memory": {
+        "enabled": true,
+        "autoSave": true,
+        "contextWindow": 50
+      },
+      "capabilities": {
+        "webAccess": true,
+        "fileSystem": true,
+        "shellCommands": true,
+        "apiCalls": true,
+        "automation": true
+      }
+    }
+  },
+  "messages": {
+    "ackReactionScope": "all"
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto",
+    "restart": true,
+    "allowedCommands": [
+      "browser",
+      "channels",
+      "agents",
+      "memory",
+      "services",
+      "workflows",
+      "dashboard",
+      "cron"
+    ]
+  },
+  "channels": {
+    "imessage": {
+      "enabled": true,
+      "cliPath": "/opt/homebrew/bin/imsg",
+      "dbPath": "~/Library/Messages/chat.db",
+      "dmPolicy": "allowlist",
+      "allowFrom": [
+        "+1234567890",
+        "user1@example.com",
+        "+0987654321",
+        "user2@example.com",
+        "user3@example.com"
+      ],
+      "groupPolicy": "allowlist",
+      "features": {
+        "reactions": true,
+        "typing": true,
+        "readReceipts": true,
+        "messageSearch": true,
+        "contextAware": true
+      }
+    }
+  },
+  "gateway": {
+    "port": 18789,
+    "mode": "local",
+    "auth": {
+      "mode": "token",
+      "token": "e25368324aaf405b9c8a7479a218c5e8"
+    },
+    "features": {
+      "dashboard": true,
+      "api": true,
+      "webhooks": true,
+      "automation": true
+    }
+  },
+  "plugins": {
+    "entries": {
+      "imessage": {
+        "enabled": true
+      },
+      "memory": {
+        "enabled": true,
+        "autoSave": true,
+        "dbPath": "~/.openclaw/memory/db/openclaw_memory.db"
+      },
+      "services": {
+        "enabled": true,
+        "tavily": true,
+        "linear": true,
+        "sentry": true,
+        "qdrant": true
+      },
+      "automation": {
+        "enabled": true,
+        "workflows": true,
+        "cron": true
+      }
+    }
+  },
+  "services": {
+    "tavily": {
+      "enabled": true,
+      "apiKey": "YOUR_TAVILY_API_KEY_HERE"
+    },
+    "linear": {
+      "enabled": true,
+      "apiKey": "YOUR_LINEAR_API_KEY_HERE"
+    },
+    "sentry": {
+      "enabled": true,
+      "authToken": "YOUR_SENTRY_AUTH_TOKEN_HERE"
+    },
+    "qdrant": {
+      "enabled": true,
+      "url": "http://localhost:6333"
+    }
+  },
+  "automation": {
+    "enabled": true,
+    "workflows": {
+      "daily_summary": {
+        "enabled": true,
+        "schedule": "0 18 * * *"
+      },
+      "health_check": {
+        "enabled": true,
+        "schedule": "*/30 * * * *"
+      },
+      "backup": {
+        "enabled": true,
+        "schedule": "0 2 * * *"
+      }
+    }
+  },
+  "security": {
+    "rateLimit": {
+      "enabled": true,
+      "maxRequests": 100,
+      "windowMs": 60000
+    },
+    "encryption": {
+      "enabled": true,
+      "algorithm": "aes-256-gcm"
+    },
+    "auditLog": {
+      "enabled": true,
+      "logPath": "~/.openclaw/logs/audit.log"
+    }
+  }
+}

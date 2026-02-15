@@ -1,0 +1,233 @@
+#!/usr/bin/env python3
+"""
+OpenClaw Enhanced CLI
+Improved command-line interface with autocomplete and colored output
+"""
+
+import sys
+import json
+import subprocess
+from pathlib import Path
+from typing import List
+
+# ANSI colors
+class Colors:
+    HEADER = '\033[95m'
+    BLUE = '\033[94m'
+    CYAN = '\033[96m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    RED = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+
+
+def print_colored(text, color):
+    """Print colored text"""
+    print(f"{color}{text}{Colors.ENDC}")
+
+
+def print_header(text):
+    """Print header"""
+    print()
+    print_colored(f"{'='*60}", Colors.CYAN)
+    print_colored(f"  {text}", Colors.BOLD + Colors.HEADER)
+    print_colored(f"{'='*60}", Colors.CYAN)
+    print()
+
+
+def cmd_dashboard():
+    """Open status dashboard"""
+    print_header("OpenClaw Dashboard")
+    subprocess.run([
+        'python3',
+        str(Path.home() / ".openclaw" / "dashboard" / "status_dashboard.py"),
+        '--serve'
+    ])
+
+
+def cmd_memory():
+    """Memory system commands"""
+    if len(sys.argv) < 3:
+        print_header("Memory System")
+        print_colored("Usage:", Colors.YELLOW)
+        print("  openclaw-enhanced memory stats          # Show statistics")
+        print("  openclaw-enhanced memory search <query> # Search messages")
+        print("  openclaw-enhanced memory context        # Show context")
+        print("  openclaw-enhanced memory tasks          # List tasks")
+        return
+
+    subcmd = sys.argv[2]
+    mem_manager = Path.home() / ".openclaw" / "memory" / "memory_manager.py"
+
+    if subcmd == "stats":
+        result = subprocess.run(['python3', str(mem_manager), 'stats'],
+                              capture_output=True, text=True)
+        print_header("Memory Statistics")
+        try:
+            stats = json.loads(result.stdout)
+            for key, value in stats.items():
+                if isinstance(value, dict):
+                    print_colored(f"\n{key.replace('_', ' ').title()}:", Colors.CYAN)
+                    for k, v in value.items():
+                        print(f"  {k}: {v}")
+                else:
+                    print_colored(f"{key.replace('_', ' ').title()}: ", Colors.CYAN, end='')
+                    print_colored(str(value), Colors.GREEN)
+        except:
+            print(result.stdout)
+
+    elif subcmd == "search":
+        if len(sys.argv) < 4:
+            print_colored("Error: search query required", Colors.RED)
+            return
+        query = " ".join(sys.argv[3:])
+        result = subprocess.run(['python3', str(mem_manager), 'search', query],
+                              capture_output=True, text=True)
+        print_header(f"Search Results: {query}")
+        print(result.stdout)
+
+    else:
+        args = [subcmd] + sys.argv[3:]
+        subprocess.run(['python3', str(mem_manager)] + args)
+
+
+def cmd_services():
+    """Service management"""
+    if len(sys.argv) < 3:
+        print_header("Service Management")
+        print_colored("Usage:", Colors.YELLOW)
+        print("  openclaw-enhanced services health       # Check all services")
+        print("  openclaw-enhanced services list         # List services")
+        return
+
+    subcmd = sys.argv[2]
+    service_integrator = Path.home() / ".openclaw" / "memory" / "service_integrator.py"
+
+    result = subprocess.run(['python3', str(service_integrator), subcmd],
+                          capture_output=True, text=True)
+
+    print_header("Service Status")
+    for line in result.stdout.split('\n'):
+        if '✅' in line:
+            print_colored(line, Colors.GREEN)
+        elif '❌' in line:
+            print_colored(line, Colors.RED)
+        else:
+            print(line)
+
+
+def cmd_workflows():
+    """Workflow management"""
+    if len(sys.argv) < 3:
+        print_header("Workflow Management")
+        print_colored("Usage:", Colors.YELLOW)
+        print("  openclaw-enhanced workflows list              # List workflows")
+        print("  openclaw-enhanced workflows execute <name>    # Run workflow")
+        return
+
+    subcmd = sys.argv[2]
+    workflow_engine = Path.home() / ".openclaw" / "automation" / "workflow_engine.py"
+
+    if subcmd == "list":
+        result = subprocess.run(['python3', str(workflow_engine), 'list'],
+                              capture_output=True, text=True)
+        print_header("Automated Workflows")
+        for line in result.stdout.split('\n'):
+            if '✅' in line:
+                print_colored(line, Colors.GREEN)
+            elif '❌' in line:
+                print_colored(line, Colors.RED)
+            else:
+                print(line)
+
+    elif subcmd == "execute":
+        if len(sys.argv) < 4:
+            print_colored("Error: workflow name required", Colors.RED)
+            return
+        workflow = sys.argv[3]
+        print_header(f"Executing Workflow: {workflow}")
+        subprocess.run(['python3', str(workflow_engine), 'execute', workflow])
+
+
+def cmd_status():
+    """Show comprehensive status"""
+    print_header("OpenClaw Comprehensive Status")
+
+    # Gateway status
+    print_colored("\n🦞 Gateway Status:", Colors.CYAN)
+    subprocess.run(['openclaw', 'gateway', 'status'])
+
+    # Memory stats
+    print_colored("\n📊 Memory Statistics:", Colors.CYAN)
+    mem_manager = Path.home() / ".openclaw" / "memory" / "memory_manager.py"
+    result = subprocess.run(['python3', str(mem_manager), 'stats'],
+                          capture_output=True, text=True)
+    try:
+        stats = json.loads(result.stdout)
+        print(f"  Messages: {stats['total_messages']}")
+        print(f"  Conversations: {stats['total_conversations']}")
+        print(f"  Context Entities: {stats['total_context_entities']}")
+    except:
+        pass
+
+    # Service health
+    print_colored("\n🔌 Service Health:", Colors.CYAN)
+    service_integrator = Path.home() / ".openclaw" / "memory" / "service_integrator.py"
+    subprocess.run(['python3', str(service_integrator), 'health'])
+
+    print()
+
+
+def print_help():
+    """Print help"""
+    print_header("OpenClaw Enhanced CLI")
+
+    print_colored("Available Commands:", Colors.YELLOW)
+    print()
+    print_colored("  dashboard", Colors.GREEN)
+    print("    Open the visual status dashboard")
+    print()
+    print_colored("  memory <command>", Colors.GREEN)
+    print("    Manage memory system (stats, search, context, tasks)")
+    print()
+    print_colored("  services <command>", Colors.GREEN)
+    print("    Manage external services (health, list)")
+    print()
+    print_colored("  workflows <command>", Colors.GREEN)
+    print("    Manage automated workflows (list, execute)")
+    print()
+    print_colored("  status", Colors.GREEN)
+    print("    Show comprehensive system status")
+    print()
+    print_colored("  help", Colors.GREEN)
+    print("    Show this help message")
+    print()
+
+
+def main():
+    if len(sys.argv) < 2:
+        print_help()
+        return
+
+    command = sys.argv[1]
+
+    commands = {
+        'dashboard': cmd_dashboard,
+        'memory': cmd_memory,
+        'services': cmd_services,
+        'workflows': cmd_workflows,
+        'status': cmd_status,
+        'help': print_help,
+    }
+
+    if command in commands:
+        commands[command]()
+    else:
+        print_colored(f"Unknown command: {command}", Colors.RED)
+        print_colored("Run 'openclaw-enhanced help' for usage", Colors.YELLOW)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
